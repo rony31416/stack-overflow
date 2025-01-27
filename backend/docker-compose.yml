@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+    depends_on:
+      - mongo
+
+  post-service:
+    build: ./post-service
+    ports:
+      - "5002:5000"
+    environment:
+      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - MINIO_ENDPOINT=minio
+    depends_on:
+      - mongo
+      - minio
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "5003:5000"
+    environment:
+      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    command: server /data
+    volumes:
+      - minio_data:/data
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+      - post-service
+      - notification-service
+
+volumes:
+  mongo_data:
+  minio_data:
+
+# The updated project ensures MongoDB is used as the database for all services, with MinIO for object storage where needed.

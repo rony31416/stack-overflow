@@ -3,8 +3,8 @@ const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
 const minioClient = require('../config/minioClient');
 const crypto = require('crypto');
-const User = require('../models/User');
-const Notification = require('../models/Notification');
+const User = require('../../user-service/models/User');
+const Notification = require('../../notification-service/models/Notification');
 const router = express.Router();
 
 const languageExtensions = {
@@ -15,68 +15,41 @@ const languageExtensions = {
   Ruby: 'rb',
 };
 
+// Check if the 'posts' bucket exists and create it if not
+const ensureBucketExists = async () => {
+  try {
+    const exists = await minioClient.bucketExists('posts');
+    if (!exists) {
+      await minioClient.makeBucket('posts', 'us-east-1'); // Change the region if necessary
+      console.log("Bucket 'posts' created successfully");
+    }
+  } catch (err) {
+    console.error('Error checking or creating bucket:', err);
+    throw new Error('Error creating or verifying bucket');
+  }
+};
+
 const authenticate = (req, res, next) => {
-  const token = req.cookies?.token; // Extract token from cookies
-  console.log(token);
+  const token = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
   if (!token) return res.status(401).json({ message: 'Access denied' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
+    req.user = decoded; // Add the decoded user to the request object
+    next(); // Proceed to the next middleware or route handler
   } catch (err) {
-    res.status(400).json({ message: 'Invalid token' });
+    res.status(400).json({ message: 'Invalid token' }); // Return error if token is invalid
   }
 };
 
-// new post routing
-// router.post('/', authenticate, async (req, res) => {
-//   const { content, codeSnippet, language } = req.body;
-//   const userId = req.user.id;
-
-//   try {
-//     // Store in MinIO
-//     const extension = languageExtensions[language] || 'txt';
-//     const snippetName = `code_snippet_${crypto.randomUUID()}.${extension}`;
-
-//     await minioClient.putObject('posts', snippetName, codeSnippet);
-
-//     // Create new post 
-//     const newPost = new Post({
-//       content,
-//       user: userId,
-//       snippetLink: snippetName,
-//       language,
-//     });
-
-//     const newNotification = new Notification({
-//       userId:userId,
-//       postId: newPost._id,
-//       message:newPost.content,
-//       isRead: false,
-//     })
-
-//     await newPost.save();
-//     await newNotification.save();
-
-//     console.log(newPost)
-
-   
-
-//     res.status(201).json(newPost);
-//   } catch (err) {
-//     res.status(500).json({ message: 'Error creating post', error: err.message });
-//   }
-// });
-
-
-// new post routing
 router.post('/', authenticate, async (req, res) => {
   const { content, codeSnippet, language } = req.body;
   const userId = req.user.id;
 
   try {
     // Store in MinIO
+    await ensureBucketExists();
+    
     const extension = languageExtensions[language] || 'txt';
     const snippetName = `code_snippet_${crypto.randomUUID()}.${extension}`;
 
