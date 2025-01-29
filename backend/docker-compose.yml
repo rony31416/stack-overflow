@@ -4,38 +4,30 @@ services:
     build: ./services/user-service
     ports:
       - "5001:5001"
-    environment:
-      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
     depends_on:
-      - mongo
+      - user-db
 
   post-service:
     build: ./services/post-service
     ports:
       - "3002:3002"
     environment:
-      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       - MINIO_ENDPOINT=minio
     depends_on:
-      - mongo
+      - post-db
       - minio
+      - notif-db
+      - user-db
 
   notification-service:
     build: ./services/notification-service
     ports:
       - "5002:5002"
-    environment:
-      - MONGO_URI=mongodb+srv://rony1325:rony1325@cluster0.toxwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
     depends_on:
-      - mongo
+      - post-db
+      - notif-db
+      - user-db
 
-  mongo:
-    image: mongo
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
 
   minio:
     image: minio/minio
@@ -50,14 +42,30 @@ services:
     volumes:
       - minio_data:/data
 
-  # nginx:
-  #   build: ./nginx
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - user-service
-  #     - post-service
-  #     - notification-service
+    
+  user-db:
+    image: mongo:latest
+    container_name: user-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - user-data:/data/db
+
+  post-db:
+    image: mongo:latest
+    container_name: post-db
+    ports:
+      - "27018:27017"
+    volumes:
+      - post-data:/data/db
+
+  notif-db:
+    image: mongo:latest
+    container_name: notif-db
+    ports:
+      - "27019:27017"
+    volumes:
+      - notif-data:/data/db
 
   reverse-proxy:
     image: nginx:alpine
@@ -72,7 +80,9 @@ services:
       - notification-service
 
 volumes:
-  mongo_data:
+  user-data:
+  post-data:
+  notif-data:
   minio_data:
 
 # The updated project ensures MongoDB is used as the database for all services, with MinIO for object storage where needed.
