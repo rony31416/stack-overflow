@@ -27,10 +27,11 @@ function SignIn() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        'http://localhost:5000/auth/signin', 
+        'http://localhost:5001/auth/signin', 
         { email, password }, 
         { withCredentials: true }
       );
+      console.log("Res", response)
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token); // Save token in localStorage
         console.log(response);

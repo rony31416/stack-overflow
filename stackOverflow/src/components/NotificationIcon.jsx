@@ -13,7 +13,7 @@ const NotificationIcon = ({ userId }) => {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/notifications/${userId}`
+          `http://localhost:5002/notifications/${userId}`
         );
         const sortedNotifications = response.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -45,7 +45,7 @@ const NotificationIcon = ({ userId }) => {
   const markAsRead = async (notificationId) => {
     try {
       await axios.put(
-        `http://localhost:5000/notifications/${notificationId}/mark`
+        `http://localhost:5002/notifications/${notificationId}/mark`
       );
       setNotifications((prev) =>
         prev.map((notification) =>

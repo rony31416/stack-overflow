@@ -16,7 +16,7 @@ function SignUp() {
       return;
     }
     // Include username in the request
-    axios.post('http://localhost:5000/auth/signup', { username, email, password })
+    axios.post('http://localhost:5001/auth/signup', { username, email, password })
       .then(response => {
         // On successful sign-up, navigate to the sign-in page
         navigate('/signin');

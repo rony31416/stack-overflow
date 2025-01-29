@@ -38,7 +38,7 @@ const Home = () => {
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/posts", {
+        const response = await axios.get("http://localhost:3002/posts", {
           withCredentials: true,
         });
         const postsData = response.data;
@@ -47,7 +47,7 @@ const Home = () => {
         const detailedPosts = await Promise.all(
           postsData.map(async (post) => {
             const postDetail = await axios.get(
-              `http://localhost:5000/posts/${post._id}`,
+              `http://localhost:3002/posts/${post._id}`,
               { withCredentials: true }
             );
             return postDetail.data;

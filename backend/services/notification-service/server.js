@@ -9,7 +9,14 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+  origin: ['http://localhost:5173', 'http://localhost:5003', 'http://localhost:5002', 'http://localhost:5001', 'http://localhost:5000',],
+  // origin: true,
+  credentials: true,
+};
+
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/notifications', notificationRoutes);

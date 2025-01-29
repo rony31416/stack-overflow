@@ -1,5 +1,5 @@
 # Use Node.js LTS as the base image
-FROM node:16
+FROM node:alpine
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Expose the service's port
-EXPOSE 5001
+EXPOSE 5002
 
 # Start the notification service
 CMD ["node", "server.js"]

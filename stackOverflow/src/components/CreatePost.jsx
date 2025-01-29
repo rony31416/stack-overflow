@@ -10,17 +10,49 @@ const CreatePost = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       const response = await axios.post(
-        "http://localhost:5000/posts",
+        "http://localhost:3002/posts",
         { content: description, codeSnippet, language },
         { withCredentials: true }
       );
-
+  
       console.log("Post created:", response.data);
       setSuccess(true); // Show confirmation message
+  
+      if (response.data._id) {
+        const postId = response.data._id;
+  
+        // Fetch current user info (you might have this in state already)
+        const userResponse = await axios.get(`http://localhost:5001/api/users/${response.data.user}`, { withCredentials: true });
+        console.log(userResponse.data.username)
+        const creatorUsername = userResponse.data.username;
+        const userId = userResponse.data._id;
+  
+        // Fetch all users except the creator
+        const usersResponse = await axios.get("http://localhost:5001/api/users");
+        const users = usersResponse.data.filter(user => user._id !== userId);
+  
+        console.log("Users to notify:", users);
+  
+        // Create notifications
+        const notifications = users.map(user => ({
+          userId: user._id,
+          postId: postId,
+          message: `${creatorUsername}'s new post about ${description}`,
+          isRead: false,
+        }));
 
+        console.log(notifications)
+  
+        await Promise.all(notifications.map(notification =>
+          axios.post("http://localhost:5002/notifications", notification, { withCredentials: true })
+        ));
+  
+        console.log("Notifications sent successfully");
+      }
+  
       // Hide message and close modal after 3 seconds
       setTimeout(() => {
         setSuccess(false);
@@ -30,6 +62,7 @@ const CreatePost = ({ onClose }) => {
       setError(err.message || "Something went wrong!");
     }
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">

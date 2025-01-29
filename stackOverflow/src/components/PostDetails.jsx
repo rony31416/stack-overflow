@@ -8,7 +8,7 @@ const PostDetails = ({ post, copyToClipboard }) => {
   useEffect(() => {
     const fetchUsername = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/users/${post.user}`);
+        const response = await axios.get(`http://localhost:5001/api/users/${post.user}`);
         setUsername(response.data.username);
       } catch (error) {
         console.error("Failed to fetch username:", error);

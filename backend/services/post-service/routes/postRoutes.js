@@ -3,8 +3,6 @@ const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
 const minioClient = require('../config/minioClient');
 const crypto = require('crypto');
-const User = require('../../user-service/models/User');
-const Notification = require('../../notification-service/models/Notification');
 const router = express.Router();
 
 const languageExtensions = {
@@ -30,7 +28,9 @@ const ensureBucketExists = async () => {
 };
 
 const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
+  // const token = req.headers.authorization?.split(' ')[1]; // Extract token from the Authorization header
+  const token = req.cookies?.token;
+  console.log(token)
   if (!token) return res.status(401).json({ message: 'Access denied' });
 
   try {
@@ -63,31 +63,36 @@ router.post('/', authenticate, async (req, res) => {
       language,
     });
 
+    console.log(newPost)
+
     await newPost.save();
 
     
-    const creator = await User.findById(userId);
-    const creatorUsername = creator ? creator.username : 'Someone';
+    // const creator = await User.findById(userId);
+    // const creatorUsername = creator ? creator.username : 'Someone';
+
+    // console.log("Hello", creator)
 
     
-    const users = await User.find({ _id: { $ne: userId } });
+    // const users = await User.find({ _id: { $ne: userId } });
 
-    // Create notifications for each user except the creator
-    const notifications = users.map(user => ({
-      userId: user._id,
-      postId: newPost._id,
-      message: `${creatorUsername}'s new post about ${content}`,
-      isRead: false,
-    }));
+    // console.log("Hi", users)
 
-    // Insert all notifications at once
-    await Notification.insertMany(notifications);
+    // // Create notifications for each user except the creator
+    // const notifications = users.map(user => ({
+    //   userId: user._id,
+    //   postId: newPost._id,
+    //   message: `${creatorUsername}'s new post about ${content}`,
+    //   isRead: false,
+    // }));
 
-    console.log('New post and notifications created successfully');
+    // // Insert all notifications at once
+    // await Notification.insertMany(notifications);
+
+    // console.log('New post and notifications created successfully');
 
     res.status(201).json(newPost);
   } catch (err) {
-    console.error('Error creating post and notifications:', err);
     res.status(500).json({ message: 'Error creating post', error: err.message });
   }
 });

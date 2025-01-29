@@ -1,14 +1,13 @@
 # Base image
-FROM node:16
+FROM node:alpine
 
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files
-COPY package.json yarn.lock ./
+COPY package*.json ./
 
 # Install dependencies
-RUN yarn install
+RUN npm install
 
 # Copy app files
 COPY . .
